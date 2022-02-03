@@ -4,6 +4,7 @@
 package ordenc
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/zeebo/assert"
@@ -70,12 +71,6 @@ func FuzzEncryptOrderedPairs(f *testing.F) {
 		// t.Logf("p1=%s / p2=%s", string(p1), string(p2))
 		// t.Logf("e1=%s / e2=%s", string(e1), string(e2))
 
-		if string(p1) < string(p2) {
-			assert.That(t, string(e1) < string(e2))
-		} else if string(p1) > string(p2) {
-			assert.That(t, string(e1) > string(e2))
-		} else {
-			assert.That(t, string(e1) == string(e2))
-		}
+		assert.That(t, bytes.Compare(p1, p2) == bytes.Compare(e1, e2))
 	})
 }

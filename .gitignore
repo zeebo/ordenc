@@ -1,7 +1,2 @@
 *.test
 *.pprof
-
-# Ignore seed corpus entries for these tests as we already have entries in tests
-# directly.
-testdata/fuzz/FuzzEncryptDecrypt
-testdata/fuzz/FuzzEncryptOrderedPairs
