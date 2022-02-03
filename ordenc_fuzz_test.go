@@ -68,9 +68,9 @@ func FuzzEncryptOrderedPairs(f *testing.F) {
 		e1 := Encrypt(k, p1, nil)
 		e2 := Encrypt(k, p2, nil)
 
-		// t.Logf("p1=%s / p2=%s", string(p1), string(p2))
-		// t.Logf("e1=%s / e2=%s", string(e1), string(e2))
+		// t.Logf("p1=%v / p2=%v", p1, p2)
+		// t.Logf("e1=%v / e2=%v", e1, e2)
 
-		assert.That(t, bytes.Compare(p1, p2) == bytes.Compare(e1, e2))
+		assert.Equal(t, bytes.Compare(p1, p2), bytes.Compare(e1, e2))
 	})
 }
