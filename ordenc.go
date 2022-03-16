@@ -52,10 +52,10 @@ func NewRandomKey(r io.Reader) (*Key, error) {
 func Encrypt(k *Key, plaintext, buf []byte) []byte {
 	rm := k.rm.Clone()
 
-	var mtmp [8]byte
 	var btmp [24]byte
 
 	for len(plaintext) > 6 {
+		var mtmp [8]byte
 		n := copy(mtmp[2:], plaintext)
 		m := binary.BigEndian.Uint64(mtmp[:])
 		m = m<<3 | uint64(n)
@@ -66,6 +66,7 @@ func Encrypt(k *Key, plaintext, buf []byte) []byte {
 		plaintext = plaintext[6:]
 	}
 
+	var mtmp [8]byte
 	n := copy(mtmp[2:], plaintext)
 	m := binary.BigEndian.Uint64(mtmp[:])
 	m = m<<3 | uint64(n)
