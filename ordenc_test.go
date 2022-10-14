@@ -16,19 +16,13 @@ func TestEncrypt(t *testing.T) {
 		k, err := NewRandomKey(&rng)
 		assert.NoError(t, err)
 
-		b1 := make([]byte, rng.Intn(13))
+		b1 := make([]byte, rng.Intn(15))
 		rng.Read(b1)
-		b2 := make([]byte, rng.Intn(13))
+		b2 := make([]byte, rng.Intn(15))
 		rng.Read(b2)
 
 		e1 := Encrypt(k, b1, e1[:0])
 		e2 := Encrypt(k, b2, e2[:0])
-
-		// t.Logf("b1: %x", b1)
-		// t.Logf("b2: %x", b2)
-		// t.Logf("e1: %x", e1)
-		// t.Logf("e2: %x", e2)
-		// t.Log()
 
 		if string(b1) < string(b2) {
 			assert.That(t, string(e1) < string(e2))
@@ -36,6 +30,40 @@ func TestEncrypt(t *testing.T) {
 			assert.That(t, string(e1) > string(e2))
 		}
 	}
+}
+
+func TestCiphertextRange(t *testing.T) {
+	rng := mwc.Rand()
+
+	var (
+		ldist [256]uint64
+		hdist [256]uint64
+	)
+
+	low := []byte{}
+	high := []byte{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
+	buf := make([]byte, 128)
+
+	for i := 0; i < 100000; i++ {
+		k, err := NewRandomKey(&rng)
+		assert.NoError(t, err)
+
+		ldist[Encrypt(k, low, buf[:0])[0]]++
+		hdist[Encrypt(k, high, buf[:0])[0]]++
+	}
+
+	var l1norm uint64
+	for i := 0; i < 256; i++ {
+		if hdist[i] > ldist[i] {
+			l1norm += hdist[i] - ldist[i]
+		} else {
+			l1norm += ldist[i] - hdist[i]
+		}
+	}
+
+	t.Logf("%-4d", ldist)
+	t.Logf("%-4d", hdist)
+	t.Log(l1norm)
 }
 
 func TestEncryptSpecialCases(t *testing.T) {
@@ -50,6 +78,7 @@ func TestEncryptSpecialCases(t *testing.T) {
 		"\x00\x00\x00\x00\x00",
 		"\x00\x00\x00\x00\x00\x00",
 		"\x00\x00\x00\x00\x00\x00\x00",
+		"\x00\x00\x00\x00\x00\x00\x00\x00",
 		"\x01",
 		"\x01\x00",
 		"\x01\x00\x00",
@@ -57,7 +86,9 @@ func TestEncryptSpecialCases(t *testing.T) {
 		"\x01\x00\x00\x00\x00",
 		"\x01\x00\x00\x00\x00\x00",
 		"\x01\x00\x00\x00\x00\x00\x00",
-		"\x01\x00\x00\x00\x00\x00\x01",
+		"\x01\x00\x00\x00\x00\x00\x00\x00",
+		"\x01\x00\x00\x00\x00\x00\x00\x01",
+		"\xff\xff\xff\xff\xff\xff\xff",
 	}
 
 	sort.Strings(specials)
@@ -86,7 +117,7 @@ func TestDecrypt(t *testing.T) {
 		k, err := NewRandomKey(&rng)
 		assert.NoError(t, err)
 
-		p := make([]byte, rng.Intn(13))
+		p := make([]byte, rng.Intn(15))
 		rng.Read(p)
 
 		e := Encrypt(k, p, e[:0])
