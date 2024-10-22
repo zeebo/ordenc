@@ -155,8 +155,6 @@ func BenchmarkU256_Div(b *testing.B) {
 
 	q := u256{l0: rng.Uint64(), l1: rng.Uint64(), l2: rng.Uint64() >> 32}
 	q = u256Add(q, u256{l2: 1 << 32})
-	r := u256{l0: rng.Uint64(), l1: rng.Uint64(), l2: rng.Uint64() >> 33}
-	r = u256Add(r, u256{l1: 1 << 57})
 	p := u256Scale(q, rng.Uint64n(1<<60))
 
 	var o uint64

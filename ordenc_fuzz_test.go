@@ -11,8 +11,7 @@ import (
 )
 
 func FuzzEncryptDecrypt(f *testing.F) {
-	k, err := NewDerivedKey(nil)
-	assert.NoError(f, err)
+	k := NewDerivedKey(nil)
 
 	for _, s := range [...][]byte{ // Add paths to the seed corpus.
 		[]byte("sample.jpg"),
@@ -34,8 +33,7 @@ func FuzzEncryptDecrypt(f *testing.F) {
 }
 
 func FuzzEncryptOrderedPairs(f *testing.F) {
-	k, err := NewDerivedKey(nil)
-	assert.NoError(f, err)
+	k := NewDerivedKey(nil)
 
 	for _, s := range [...][2][]byte{ // Add pairs to the seed corpus.
 		{

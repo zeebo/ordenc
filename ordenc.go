@@ -1,9 +1,9 @@
 package ordenc
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/binary"
-	"io"
 
 	"github.com/zeebo/blake3"
 )
@@ -14,7 +14,7 @@ type Key struct {
 	mk u256
 }
 
-func NewDerivedKey(mat []byte) (*Key, error) {
+func NewDerivedKey(mat []byte) *Key {
 	var buf [24 + 32 + 32]byte
 	blake3.DeriveKey("ordenc v0 root key derivation", mat, buf[:])
 
@@ -45,25 +45,25 @@ func NewDerivedKey(mat []byte) (*Key, error) {
 
 	rm, err := blake3.NewKeyed(buf[24:56])
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	hm, err := blake3.NewKeyed(buf[56:88])
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	return &Key{
 		rm: rm,
 		hm: hm,
 		mk: mk,
-	}, nil
+	}
 }
 
-func NewRandomKey(r io.Reader) (*Key, error) {
-	var tmp [56]byte
-	if _, err := io.ReadFull(r, tmp[:]); err != nil {
-		return nil, err
+func NewRandomKey() *Key {
+	var tmp [24 + 32 + 32]byte
+	if _, err := rand.Read(tmp[:]); err != nil {
+		panic(err)
 	}
 	return NewDerivedKey(tmp[:])
 }
@@ -74,7 +74,7 @@ func Encrypt(k *Key, plaintext, buf []byte) []byte {
 	var btmp [29]byte
 	var cnt uint64
 
-	include := func(p []byte) {
+	include := func() {
 		var mtmp [8]byte
 		n := copy(mtmp[1:], plaintext)
 		m := binary.BigEndian.Uint64(mtmp[:])
@@ -84,10 +84,10 @@ func Encrypt(k *Key, plaintext, buf []byte) []byte {
 	}
 
 	for len(plaintext) > 7 {
-		include(plaintext[:7])
+		include()
 		plaintext = plaintext[7:]
 	}
-	include(plaintext)
+	include()
 
 	if len(plaintext) == 7 {
 		encryptOne(k.mk, rm, 0b1111<<59, &cnt, &btmp)
@@ -112,7 +112,7 @@ func encryptOne(mk u256, rm *blake3.Hasher, msg uint64, cnt *uint64, buf *[29]by
 	rm.Reset()
 	rm.Write(mtmp[:])
 
-	var hmtmp [24]byte
+	var hmtmp [32]byte
 	rbuf := rm.Sum(hmtmp[:0])
 
 	// k in [2^168, 2^169)

@@ -13,12 +13,11 @@ func TestEncrypt(t *testing.T) {
 	var e1, e2 []byte
 
 	for i := 0; i < 100000; i++ {
-		k, err := NewRandomKey(&rng)
-		assert.NoError(t, err)
+		k := NewRandomKey()
 
-		b1 := make([]byte, rng.Intn(15))
+		b1 := make([]byte, rng.Intn(64))
 		rng.Read(b1)
-		b2 := make([]byte, rng.Intn(15))
+		b2 := make([]byte, rng.Intn(64))
 		rng.Read(b2)
 
 		e1 := Encrypt(k, b1, e1[:0])
@@ -33,8 +32,6 @@ func TestEncrypt(t *testing.T) {
 }
 
 func TestCiphertextRange(t *testing.T) {
-	rng := mwc.Rand()
-
 	var (
 		ldist [256]uint64
 		hdist [256]uint64
@@ -45,8 +42,7 @@ func TestCiphertextRange(t *testing.T) {
 	buf := make([]byte, 128)
 
 	for i := 0; i < 100000; i++ {
-		k, err := NewRandomKey(&rng)
-		assert.NoError(t, err)
+		k := NewRandomKey()
 
 		ldist[Encrypt(k, low, buf[:0])[0]]++
 		hdist[Encrypt(k, high, buf[:0])[0]]++
@@ -67,8 +63,6 @@ func TestCiphertextRange(t *testing.T) {
 }
 
 func TestEncryptSpecialCases(t *testing.T) {
-	rng := mwc.Rand()
-
 	specials := []string{
 		"",
 		"\x00",
@@ -94,8 +88,7 @@ func TestEncryptSpecialCases(t *testing.T) {
 	sort.Strings(specials)
 
 	for i := 0; i < 10000; i++ {
-		k, err := NewRandomKey(&rng)
-		assert.NoError(t, err)
+		k := NewRandomKey()
 
 		for i := 0; i < len(specials)-1; i++ {
 			assert.That(t, specials[i] < specials[i+1])
@@ -114,10 +107,9 @@ func TestDecrypt(t *testing.T) {
 	var ok bool
 
 	for i := 0; i < 100000; i++ {
-		k, err := NewRandomKey(&rng)
-		assert.NoError(t, err)
+		k := NewRandomKey()
 
-		p := make([]byte, rng.Intn(15))
+		p := make([]byte, rng.Intn(64))
 		rng.Read(p)
 
 		e := Encrypt(k, p, e[:0])
@@ -129,9 +121,7 @@ func TestDecrypt(t *testing.T) {
 }
 
 func BenchmarkEncrypt(b *testing.B) {
-	rng := mwc.Rand()
-	k, err := NewRandomKey(&rng)
-	assert.NoError(b, err)
+	k := NewRandomKey()
 
 	plain := make([]byte, 24)
 	cipher := make([]byte, 5*24)
@@ -146,9 +136,7 @@ func BenchmarkEncrypt(b *testing.B) {
 }
 
 func BenchmarkDecrypt(b *testing.B) {
-	rng := mwc.Rand()
-	k, err := NewRandomKey(&rng)
-	assert.NoError(b, err)
+	k := NewRandomKey()
 
 	plain := make([]byte, 24)
 	cipher := Encrypt(k, plain, nil)
